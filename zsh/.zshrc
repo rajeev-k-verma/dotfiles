@@ -73,6 +73,7 @@ setopt hist_ignore_all_dups
 setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
+setopt interactivecomments
 
 # ============================================================================
 # Keybindings
@@ -118,11 +119,47 @@ export NVM_DIR="$HOME/.nvm"
 # Aliases
 # ============================================================================
 
-alias ll='ls -lah --color'
-alias ls='ls --color'
+# Basic aliases
+alias c='clear'
 alias search='is-fast'
 alias tldrf='tldr --list | fzf --preview "tldr {1} --color=always" --preview-window=right,70% | xargs tldr'
-alias c='clear'
+
+# Alias for lsd (better ls)
+if [[ -x "$(command -v lsd)" ]]; then
+	alias ls='lsd -F --group-dirs first'
+	alias ll='lsd --all --header --long --group-dirs first'
+	alias tree='lsd --tree'
+else
+	# Fallback to regular ls with colors
+	alias ll='ls -lah --color'
+	alias ls='ls --color'
+fi
+
+# Alias for FZF with bat preview
+if [[ -x "$(command -v fzf)" ]]; then
+    alias fzfp='fzf --preview "bat --style=numbers --color=always --line-range :500 {}"'
+    # Alias to fuzzy find files and open them
+	if [[ -x "$(command -v xdg-open)" ]]; then
+		alias preview='xdg-open $(fzf --info=inline --query="${@}")'
+	else
+		alias preview='$EDITOR $(fzf --info=inline --query="${@}")'
+	fi
+fi
+
+# Get local IP addresses
+if [[ -x "$(command -v ip)" ]]; then
+    alias iplocal="ip -br -c a"
+else
+    alias iplocal="ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'"
+fi
+
+# Get public IP addresses
+if [[ -x "$(command -v curl)" ]]; then
+    alias ipexternal="curl -s ifconfig.me && echo"
+elif [[ -x "$(command -v wget)" ]]; then
+    alias ipexternal="wget -qO- ifconfig.me && echo"
+fi
+
 
 # ============================================================================
 # Prompt Setup
